@@ -185,7 +185,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 if (breadcrumb.hasKey("category")) {
                     breadcrumbBuilder.setCategory(breadcrumb.getString("category"));
                 }
-                
+
                 if (breadcrumb.hasKey("type")) {
                     String breadcrumbType = breadcrumb.getString("type");
 
@@ -206,7 +206,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                         for (Map.Entry<String, Object> data : ((ReadableNativeMap)breadcrumb.getMap("data")).toHashMap().entrySet()) {
                             newData.put(data.getKey(), data.getValue() != null ? data.getValue().toString() : null);
                         }
-                        
+
                         // in case a `status_code` entry got accidentally stringified as a float
                         if (newData.containsKey("status_code")) {
                               String value = newData.get("status_code");
@@ -215,7 +215,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                                   value.endsWith(".0") ? value.replace(".0", "") : value
                               );
                         }
-                        
+
                         breadcrumbBuilder.setData(newData);
                     }
                 } catch (UnexpectedNativeTypeException e) {
@@ -302,13 +302,17 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             ReadableNativeMap exception = exceptionValues.getMap(0);
             if (exception.hasKey("stacktrace")) {
                 ReadableNativeMap stacktrace = exception.getMap("stacktrace");
-                ReadableNativeArray frames = (ReadableNativeArray)stacktrace.getArray("frames");
-                if (exception.hasKey("value")) {
-                    addExceptionInterface(eventBuilder, exception.getString("type"), exception.getString("value"), frames);
-                } else {
-                    // We use type/type here since this indicates an Unhandled Promise Rejection
-                    // https://github.com/getsentry/react-native-sentry/issues/353
-                    addExceptionInterface(eventBuilder, exception.getString("type"), exception.getString("type"), frames);
+                // temporary solution until final fix
+                // https://github.com/getsentry/sentry-react-native/issues/742
+                if (stacktrace.hasKey("frames")) {
+                    ReadableNativeArray frames = (ReadableNativeArray)stacktrace.getArray("frames");
+                    if (exception.hasKey("value")) {
+                        addExceptionInterface(eventBuilder, exception.getString("type"), exception.getString("value"), frames);
+                    } else {
+                        // We use type/type here since this indicates an Unhandled Promise Rejection
+                        // https://github.com/getsentry/react-native-sentry/issues/353
+                        addExceptionInterface(eventBuilder, exception.getString("type"), exception.getString("type"), frames);
+                    }
                 }
             }
         }
