@@ -1,0 +1,10 @@
+assets
+examples
+docs
+.idea
+appium
+.vscode
+.travis
+.github
+
+!/dist/**/*
